@@ -526,35 +526,6 @@ print("\n" + "=" * 60)
 print("✓ VALIDATION COMPLETE")
 print("=" * 60)
 
-# COMMAND ----------
-
-# DBTITLE 1,Build gold_customer_activity_daily table
-# MAGIC %md
-# MAGIC ---
-# MAGIC
-# MAGIC # Part 2: Customer Activity Daily Table
-# MAGIC
-# MAGIC ## gold_customer_activity_daily
-# MAGIC
-# MAGIC This table provides a **historical daily view** of customer behavior:
-# MAGIC * One row per customer per day
-# MAGIC * Daily activity metrics (purchases, marketing, service, loyalty)
-# MAGIC * Enables time-series analysis and trend detection
-# MAGIC * Supports historical behavior analysis for churn prediction
-# MAGIC
-# MAGIC ### Design Approach:
-# MAGIC
-# MAGIC **Date Spine Strategy**: Generate a complete date range and left join daily activities to ensure every customer has a row for every day (even if no activity).
-# MAGIC
-# MAGIC **Metrics Per Day**:
-# MAGIC * Purchase activity: transaction count, revenue
-# MAGIC * Marketing engagement: emails sent/opened/clicked
-# MAGIC * Service interactions: count, satisfaction scores
-# MAGIC * Loyalty activity: points earned/redeemed
-# MAGIC * Cumulative metrics: running totals
-# MAGIC * Rolling windows: 7-day, 30-day aggregations
-
-# COMMAND ----------
 
 # DBTITLE 1,Calculate daily purchase activity
 # Calculate daily purchase activity
@@ -781,92 +752,6 @@ print("\n" + "=" * 60)
 print("✓ DAILY ACTIVITY TABLE VALIDATION COMPLETE")
 print("=" * 60)
 
-# COMMAND ----------
-
-# DBTITLE 1,Summary: Gold layer tables created
-# MAGIC %md
-# MAGIC ---
-# MAGIC
-# MAGIC # Gold Layer Implementation Summary
-# MAGIC
-# MAGIC ## ✓ Tables Created
-# MAGIC
-# MAGIC ### 1. **workspace.db_analytics.gold_customer_360**
-# MAGIC * **Grain**: One row per customer
-# MAGIC * **Purpose**: Current state customer intelligence - "What do we know about this customer today?"
-# MAGIC * **Row count**: 40,000 customers
-# MAGIC * **Columns**: 39 metrics covering:
-# MAGIC   * Customer profile (country, region, status, segment, loyalty tier)
-# MAGIC   * Value metrics (total revenue, 12-month revenue, AOV, transaction counts)
-# MAGIC   * Recency metrics (last purchase date, days since last purchase)
-# MAGIC   * Frequency metrics (purchases in last 30/60/90/365 days)
-# MAGIC   * Engagement metrics (marketing email activity, engagement rate)
-# MAGIC   * Service metrics (interactions, satisfaction scores, unresolved issues)
-# MAGIC   * Loyalty metrics (points earned/redeemed, loyalty tier, recent activity)
-# MAGIC   * Behavioral trends (30-day/60-day period comparisons for churn prediction)
-# MAGIC
-# MAGIC ### 2. **workspace.db_analytics.gold_customer_activity_daily**
-# MAGIC * **Grain**: One row per customer per day (with activity)
-# MAGIC * **Purpose**: Historical time-series view of customer behavior
-# MAGIC * **Columns**: ~25 metrics covering:
-# MAGIC   * Daily activity (transactions, revenue, emails, service, loyalty)
-# MAGIC   * Rolling windows (7-day and 30-day aggregations)
-# MAGIC   * Cumulative metrics (running totals over time)
-# MAGIC * **Use Cases**:
-# MAGIC   * Time-series analysis and trend detection
-# MAGIC   * Churn prediction model features (activity patterns over time)
-# MAGIC   * Customer lifecycle analysis
-# MAGIC   * Seasonal behavior patterns
-# MAGIC   * Lead/lag indicators for customer health
-# MAGIC
-# MAGIC ---
-# MAGIC
-# MAGIC ## Query Examples
-# MAGIC
-# MAGIC ### Customer 360 - Find high-value at-risk customers
-# MAGIC ```sql
-# MAGIC SELECT 
-# MAGIC   customer_id,
-# MAGIC   country,
-# MAGIC   total_revenue,
-# MAGIC   days_since_last_purchase,
-# MAGIC   purchase_frequency_change_pct,
-# MAGIC   revenue_change_pct
-# MAGIC FROM workspace.db_analytics.gold_customer_360
-# MAGIC WHERE total_revenue > 50000  -- High value
-# MAGIC   AND days_since_last_purchase > 90  -- Haven't purchased recently
-# MAGIC   AND purchase_frequency_change_pct < -20  -- Declining frequency
-# MAGIC ORDER BY total_revenue DESC
-# MAGIC ```
-# MAGIC
-# MAGIC ### Daily Activity - Analyze customer engagement trends
-# MAGIC ```sql
-# MAGIC SELECT 
-# MAGIC   activity_date,
-# MAGIC   customer_id,
-# MAGIC   daily_revenue,
-# MAGIC   rolling_30d_revenue,
-# MAGIC   cumulative_revenue,
-# MAGIC   rolling_30d_transactions
-# MAGIC FROM workspace.db_analytics.gold_customer_activity_daily
-# MAGIC WHERE customer_id = 12345
-# MAGIC   AND activity_date >= '2024-01-01'
-# MAGIC ORDER BY activity_date
-# MAGIC ```
-# MAGIC
-# MAGIC ---
-# MAGIC
-# MAGIC ## Contract Compliance
-# MAGIC
-# MAGIC ✅ All Spark best practices followed  
-# MAGIC ✅ No anti-patterns (removed intermediate `.count()` calls)  
-# MAGIC ✅ Spark-native operations only (no UDFs, no Python loops)  
-# MAGIC ✅ Distributed window functions for rolling metrics  
-# MAGIC ✅ Explicit column selection throughout  
-# MAGIC ✅ Comprehensive validation performed  
-# MAGIC ✅ Production-ready code
-
-# COMMAND ----------
 
 # DBTITLE 1,OPTIMIZED: Load and prepare base customer data
 # Load base customer profile data
