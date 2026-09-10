@@ -226,31 +226,3 @@ for result in validation_results:
     status = "✓ PASS" if result['metadata_complete'] else "✗ FAIL"
     print(f"{status} - {result['table']}: {result['row_count']:,} rows")
 
-# COMMAND ----------
-
-# DBTITLE 1,Anti-Pattern Analysis Summary
-# MAGIC %md
-# MAGIC ## Spark Anti-Pattern Analysis & Resolution
-# MAGIC
-# MAGIC ### Contract Compliance Review
-# MAGIC
-# MAGIC **✓ COMPLIANT:**
-# MAGIC * No `collect()` for data processing (only for validation metrics)
-# MAGIC * No `toPandas()` usage
-# MAGIC * No driver-side data processing
-# MAGIC * No Python UDFs
-# MAGIC * No Python loops over DataFrame rows
-# MAGIC * No unnecessary `cache()` or `persist()`
-# MAGIC * No unnecessary `repartition()` or `coalesce()`
-# MAGIC * Auto Loader handles incremental processing efficiently
-# MAGIC
-# MAGIC **✓ FIXED:**
-# MAGIC * **Chained `.withColumn()` calls** → Replaced with single `.select()` operation
-# MAGIC   * **Before:** 4 chained `.withColumn()` calls created deeply nested execution plan
-# MAGIC   * **After:** Single `.select("*", col1, col2, col3, col4)` adds all metadata columns at once
-# MAGIC   * **Benefit:** Simplified execution plan, better optimizer performance
-# MAGIC
-# MAGIC ### Validation Approach
-# MAGIC * Uses `collect()[0]` for aggregated metrics only (acceptable per contract)
-# MAGIC * Multiple table scans for validation are intentional and expected
-# MAGIC * Validation is separated from production ingestion code
